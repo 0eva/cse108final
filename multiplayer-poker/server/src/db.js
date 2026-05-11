@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, '..', 'poker.sqlite');
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'poker.sqlite');
 
 sqlite3.verbose();
 export const db = new sqlite3.Database(dbPath);
