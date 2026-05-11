@@ -15,6 +15,7 @@ function publicGame(game, players, viewerId) {
     currentBet: game.current_bet,
     round: game.round,
     winnerUserId: game.winner_user_id,
+    dealerUserId: game.dealer_user_id,
     players: players.map(p => ({
       userId: p.user_id,
       username: p.username,
@@ -224,6 +225,28 @@ export function setupGameSocket(io) {
       const player = await get('SELECT id FROM game_players WHERE game_id = ? AND user_id = ?', [game.id, socket.user.id]);
       if (!player) return socket.emit('error_message', 'Join the table before chatting');
       await run('INSERT INTO game_chats (game_id, user_id, message) VALUES (?, ?, ?)', [game.id, socket.user.id, text]);
+      await broadcast(io, roomCode);
+    });
+
+
+    socket.on('reset_chips', async ({ roomCode }) => {
+      roomCode = String(roomCode || '').toUpperCase();
+      const game = await get('SELECT * FROM games WHERE room_code = ?', [roomCode]);
+      if (!game) return socket.emit('error_message', 'Room not found');
+      if (game.dealer_user_id !== socket.user.id) return socket.emit('error_message', 'Only the host can reset chips');
+
+      await run(`UPDATE game_players
+        SET chips_in_game=1000, current_bet=0, folded=0, all_in=0, hand_cards_json='[]'
+        WHERE game_id=?`, [game.id]);
+
+      await run(`UPDATE games
+        SET status='WAITING', pot=0, deck_json='[]', community_cards_json='[]', round='LOBBY',
+            current_bet=0, current_turn_user_id=NULL, winner_user_id=NULL
+        WHERE id=?`, [game.id]);
+
+      await run('INSERT INTO game_actions (game_id, user_id, action_type, message) VALUES (?, ?, ?, ?)',
+        [game.id, socket.user.id, 'RESET_CHIPS', `${socket.user.username} reset all players to 1000 chips`]);
+
       await broadcast(io, roomCode);
     });
 

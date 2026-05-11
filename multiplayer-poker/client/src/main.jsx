@@ -135,6 +135,7 @@ function PokerTable({ roomCode, user, onBack }) {
   const isMyTurn = String(game?.currentTurnUserId) === userId;
   const callAmount = Math.max(0, (game?.currentBet || 0) - (me?.currentBet || 0));
   const winner = game?.players.find(p => String(p.userId) === String(game.winnerUserId));
+  const isHost = String(game?.dealerUserId) === userId;
   const showdownHands = game?.status === 'FINISHED'
     ? game.players
     : [];
@@ -142,6 +143,12 @@ function PokerTable({ roomCode, user, onBack }) {
   const chats = state?.chats || [];
 
   function action(type, amount = 0) { setError(''); socket.emit('player_action', { roomCode, action: type, amount }); }
+  function resetChips() {
+    setError('');
+    if (window.confirm('Reset every player back to 1000 chips and return the table to the lobby?')) {
+      socket.emit('reset_chips', { roomCode });
+    }
+  }
   function sendChat(e) {
     e.preventDefault();
     const message = chatText.trim();
@@ -176,6 +183,7 @@ function PokerTable({ roomCode, user, onBack }) {
         {game?.status !== 'FINISHED' && <div className="your-hand"><h3>Your hand</h3><div className="cards">{(me?.cards?.length ? me.cards : [null,null]).map((c,i)=><Card key={i} card={c}/>)}</div></div>}
         <div className="controls">
           {game?.status === 'WAITING' && <button className="primary" onClick={()=>socket.emit('start_game', { roomCode })}><Play size={16}/> Start Game</button>}
+          {isHost && <button className="ghost" onClick={resetChips}><RotateCcw size={16}/> Reset Chips</button>}
           {game?.status === 'FINISHED' && <button className="primary" onClick={()=>socket.emit('new_hand', { roomCode })}><RotateCcw size={16}/> Reset Hand</button>}
           {game?.status === 'ACTIVE' && <>
             <button disabled={!isMyTurn} onClick={()=>action('fold')}>Fold</button>
