@@ -70,6 +70,7 @@ export async function initDb() {
     current_bet INTEGER NOT NULL DEFAULT 0,
     folded INTEGER NOT NULL DEFAULT 0,
     all_in INTEGER NOT NULL DEFAULT 0,
+    acted_this_round INTEGER NOT NULL DEFAULT 0,
     hand_cards_json TEXT NOT NULL DEFAULT '[]',
     bot_level TEXT,
     UNIQUE(game_id, user_id),
@@ -80,6 +81,7 @@ export async function initDb() {
 
   await run(`ALTER TABLE games ADD COLUMN bot_level TEXT`).catch(() => {});
   await run(`ALTER TABLE game_players ADD COLUMN bot_level TEXT`).catch(() => {});
+  await run(`ALTER TABLE game_players ADD COLUMN acted_this_round INTEGER NOT NULL DEFAULT 0`).catch(() => {});
 
   await run(`CREATE TABLE IF NOT EXISTS game_actions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

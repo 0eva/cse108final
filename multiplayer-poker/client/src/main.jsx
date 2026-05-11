@@ -188,9 +188,9 @@ function PokerTable({ roomCode, user, onBack }) {
           {game?.status === 'ACTIVE' && <>
             <button disabled={!isMyTurn} onClick={()=>action('fold')}>Fold</button>
             <button disabled={!isMyTurn || callAmount !== 0} onClick={()=>action('check')}>Check</button>
-            <button disabled={!isMyTurn} onClick={()=>action('call')}>Call {callAmount}</button>
+            {callAmount > 0 && <button disabled={!isMyTurn} onClick={()=>action('call')}>Call {callAmount}</button>}
             <input type="number" value={raise} onChange={e=>setRaise(e.target.value)} />
-            <button disabled={!isMyTurn} onClick={()=>action('raise', Number(raise))}>Raise</button>
+            <button disabled={!isMyTurn} onClick={()=>action('raise', Number(raise))}>{(game?.currentBet || 0) === 0 ? 'Bet' : 'Raise'}</button>
           </>}
         </div>
         {error && <p className="error center">{error}</p>}

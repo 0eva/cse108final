@@ -56,28 +56,49 @@ async function broadcast(io, roomCode) {
 
 async function advanceRound(game, players) {
   const active = players.filter(p => !p.folded);
-  if (active.length <= 1) return finishHand(game);
-  const settled = active.every(p => p.current_bet === game.current_bet || p.all_in);
-  if (!settled) return null;
+  if (active.length <= 1) {
+    await finishHand(game);
+    return true;
+  }
+
+  const bettingComplete = active.every(p =>
+    p.all_in || (p.acted_this_round && p.current_bet === game.current_bet)
+  );
+  if (!bettingComplete) return false;
 
   let deck = JSON.parse(game.deck_json);
   let community = JSON.parse(game.community_cards_json);
   let round = game.round;
-  if (round === 'PREFLOP') {
-    const d = draw(deck, 3); community = d.cards; deck = d.deck; round = 'FLOP';
-  } else if (round === 'FLOP') {
-    const d = draw(deck, 1); community.push(...d.cards); deck = d.deck; round = 'TURN';
-  } else if (round === 'TURN') {
-    const d = draw(deck, 1); community.push(...d.cards); deck = d.deck; round = 'RIVER';
-  } else if (round === 'RIVER') {
-    return finishHand(game);
-  }
-  const first = active.sort((a, b) => a.seat - b.seat)[0];
-  await run('UPDATE game_players SET current_bet = 0 WHERE game_id = ?', [game.id]);
-  await run('UPDATE games SET deck_json = ?, community_cards_json = ?, round = ?, current_bet = 0, current_turn_user_id = ? WHERE id = ?', [JSON.stringify(deck), JSON.stringify(community), round, first.user_id, game.id]);
-  await run('INSERT INTO game_actions (game_id, action_type, message) VALUES (?, ?, ?)', [game.id, 'ROUND', `${round} dealt`]);
-}
 
+  if (round === 'PREFLOP') {
+    const d = draw(deck, 3);
+    community = d.cards;
+    deck = d.deck;
+    round = 'FLOP';
+  } else if (round === 'FLOP') {
+    const d = draw(deck, 1);
+    community.push(...d.cards);
+    deck = d.deck;
+    round = 'TURN';
+  } else if (round === 'TURN') {
+    const d = draw(deck, 1);
+    community.push(...d.cards);
+    deck = d.deck;
+    round = 'RIVER';
+  } else if (round === 'RIVER') {
+    await finishHand(game);
+    return true;
+  }
+
+  const first = active.sort((a, b) => a.seat - b.seat)[0];
+  await run('UPDATE game_players SET current_bet = 0, acted_this_round = 0 WHERE game_id = ?', [game.id]);
+  await run(
+    'UPDATE games SET deck_json = ?, community_cards_json = ?, round = ?, current_bet = 0, current_turn_user_id = ? WHERE id = ?',
+    [JSON.stringify(deck), JSON.stringify(community), round, first.user_id, game.id]
+  );
+  await run('INSERT INTO game_actions (game_id, action_type, message) VALUES (?, ?, ?)', [game.id, 'ROUND', `${round} dealt`]);
+  return true;
+}
 
 function holeStrength(player) {
   const values = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, J: 11, Q: 12, K: 13, A: 14 };
@@ -116,16 +137,17 @@ async function applyAction(roomCode, user, action, amount = 0, onError = () => {
   let playerBet = player.current_bet;
 
   if (action === 'fold') {
-    await run('UPDATE game_players SET folded = 1 WHERE id = ?', [player.id]);
+    await run('UPDATE game_players SET folded = 1, acted_this_round = 1 WHERE id = ?', [player.id]);
     message = `${user.username} folded`;
   } else if (action === 'check') {
     if (player.current_bet !== game.current_bet) return onError('Cannot check. You need to call.');
+    await run('UPDATE game_players SET acted_this_round = 1 WHERE id = ?', [player.id]);
     message = `${user.username} checked`;
   } else if (action === 'call') {
     const need = Math.max(0, game.current_bet - player.current_bet);
     const pay = Math.min(need, chips);
     chips -= pay; playerBet += pay; newPot += pay;
-    await run('UPDATE game_players SET chips_in_game=?, current_bet=?, all_in=? WHERE id=?', [chips, playerBet, chips === 0 ? 1 : 0, player.id]);
+    await run('UPDATE game_players SET chips_in_game=?, current_bet=?, all_in=?, acted_this_round=1 WHERE id=?', [chips, playerBet, chips === 0 ? 1 : 0, player.id]);
     await run('UPDATE games SET pot=? WHERE id=?', [newPot, game.id]);
     message = `${user.username} called ${pay}`;
   } else if (action === 'raise') {
@@ -134,18 +156,19 @@ async function applyAction(roomCode, user, action, amount = 0, onError = () => {
     const need = amount - player.current_bet;
     if (need > chips) return onError('Not enough chips');
     chips -= need; playerBet = amount; newPot += need; newCurrentBet = amount;
-    await run('UPDATE game_players SET chips_in_game=?, current_bet=?, all_in=? WHERE id=?', [chips, playerBet, chips === 0 ? 1 : 0, player.id]);
+    await run('UPDATE game_players SET chips_in_game=?, current_bet=?, all_in=?, acted_this_round=1 WHERE id=?', [chips, playerBet, chips === 0 ? 1 : 0, player.id]);
+    await run('UPDATE game_players SET acted_this_round = 0 WHERE game_id = ? AND id != ? AND folded = 0 AND all_in = 0', [game.id, player.id]);
     await run('UPDATE games SET pot=?, current_bet=? WHERE id=?', [newPot, newCurrentBet, game.id]);
-    message = `${user.username} raised to ${amount}`;
+    message = `${user.username} ${game.current_bet === 0 ? 'bet' : 'raised to'} ${amount}`;
   }
 
   await run('INSERT INTO game_actions (game_id, user_id, action_type, amount, message) VALUES (?, ?, ?, ?, ?)', [game.id, user.id, action.toUpperCase(), amount, message]);
   let updatedGame = await get('SELECT * FROM games WHERE id = ?', [game.id]);
   let updatedPlayers = await all('SELECT * FROM game_players WHERE game_id = ? ORDER BY seat', [game.id]);
-  await advanceRound(updatedGame, updatedPlayers);
+  const roundAdvanced = await advanceRound(updatedGame, updatedPlayers);
   updatedGame = await get('SELECT * FROM games WHERE id = ?', [game.id]);
   updatedPlayers = await all('SELECT * FROM game_players WHERE game_id = ? ORDER BY seat', [game.id]);
-  if (updatedGame.status === 'ACTIVE') {
+  if (!roundAdvanced && updatedGame.status === 'ACTIVE') {
     const nxt = nextPlayer(updatedPlayers, user.id);
     if (nxt) await run('UPDATE games SET current_turn_user_id = ? WHERE id = ?', [nxt.user_id, game.id]);
   }
@@ -201,7 +224,7 @@ export function setupGameSocket(io) {
       let deck = createDeck();
       for (const p of players) {
         const dealt = draw(deck, 2); deck = dealt.deck;
-        await run('UPDATE game_players SET hand_cards_json = ?, folded = 0, all_in = 0, current_bet = 0 WHERE id = ?', [JSON.stringify(dealt.cards), p.id]);
+        await run('UPDATE game_players SET hand_cards_json = ?, folded = 0, all_in = 0, current_bet = 0, acted_this_round = 0 WHERE id = ?', [JSON.stringify(dealt.cards), p.id]);
       }
       await run(`UPDATE games SET status='ACTIVE', pot=0, deck_json=?, community_cards_json='[]', round='PREFLOP', current_bet=0, current_turn_user_id=? WHERE id=?`, [JSON.stringify(deck), players[0].user_id, game.id]);
       await run('INSERT INTO game_actions (game_id, user_id, action_type, message) VALUES (?, ?, ?, ?)', [game.id, socket.user.id, 'START', 'Game started']);
@@ -236,7 +259,7 @@ export function setupGameSocket(io) {
       if (game.dealer_user_id !== socket.user.id) return socket.emit('error_message', 'Only the host can reset chips');
 
       await run(`UPDATE game_players
-        SET chips_in_game=1000, current_bet=0, folded=0, all_in=0, hand_cards_json='[]'
+        SET chips_in_game=1000, current_bet=0, folded=0, all_in=0, acted_this_round=0, hand_cards_json='[]'
         WHERE game_id=?`, [game.id]);
 
       await run(`UPDATE games
@@ -255,7 +278,7 @@ export function setupGameSocket(io) {
       const game = await get('SELECT * FROM games WHERE room_code = ?', [roomCode]);
       if (!game || game.dealer_user_id !== socket.user.id) return;
       await run(`UPDATE games SET status='WAITING', pot=0, deck_json='[]', community_cards_json='[]', round='LOBBY', current_bet=0, current_turn_user_id=NULL, winner_user_id=NULL WHERE id=?`, [game.id]);
-      await run(`UPDATE game_players SET current_bet=0, folded=0, all_in=0, hand_cards_json='[]' WHERE game_id=?`, [game.id]);
+      await run(`UPDATE game_players SET current_bet=0, folded=0, all_in=0, acted_this_round=0, hand_cards_json='[]' WHERE game_id=?`, [game.id]);
       await playBots(io, roomCode);
       await broadcast(io, roomCode);
     });
