@@ -1,0 +1,545 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #f8f1df;
+  background: #080b0a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #080b0a;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  background: #f2d27c;
+  color: #17100a;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: 0.15s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.primary {
+  background: #b3261e;
+  color: #fff7e6;
+}
+
+.ghost {
+  background: #141917;
+  color: #f8f1df;
+  border: 1px solid #3d3424;
+}
+
+input {
+  border: 1px solid #3d3424;
+  background: #111614;
+  color: #f8f1df;
+  border-radius: 14px;
+  padding: 13px 14px;
+  outline: none;
+  width: 100%;
+}
+
+input::placeholder {
+  color: #9f9274;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 28px;
+  align-items: center;
+  padding: 48px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.hero-card,
+.auth-card,
+.panel {
+  border: 1px solid #3d3424;
+  background: #101512;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+  border-radius: 30px;
+}
+
+.hero-card {
+  padding: 58px;
+}
+
+.auth-card {
+  padding: 32px;
+  display: grid;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-weight: 900;
+  color: #f2d27c;
+}
+
+.brand.small {
+  font-size: 20px;
+}
+
+.hero-card h1 {
+  font-size: 62px;
+  line-height: 1;
+  margin: 28px 0 16px;
+  color: #fff7e6;
+}
+
+.hero-card p,
+.lobby p {
+  color: #c7bda2;
+  font-size: 18px;
+}
+
+.switch {
+  color: #f2d27c;
+  cursor: pointer;
+  text-align: center;
+}
+
+.error {
+  background: #2a1110;
+  border: 1px solid #8e2b24;
+  color: #ffd8d2;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.center {
+  text-align: center;
+}
+
+nav {
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: #080b0a;
+}
+
+.lobby,
+.table-page {
+  min-height: 100vh;
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 24px;
+  padding: 28px;
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.panel {
+  padding: 15px;
+}
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel.big h1 {
+  font-size: 46px;
+  margin: 0 0 10px;
+  color: #fff7e6;
+}
+
+.join-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.game-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border-radius: 18px;
+  background: #161d19;
+  margin-top: 12px;
+  border: 1px solid #2e392f;
+}
+
+.game-row span {
+  display: block;
+  color: #9f9274;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.muted {
+  color: #9f9274;
+}
+
+.room-code {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #141917;
+  border: 1px solid #3d3424;
+  padding: 8px 10px;
+  border-radius: 16px;
+}
+
+.room-code button {
+  padding: 8px 10px;
+}
+
+.table-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  gap: 20px;
+  padding: 18px 28px 28px;
+}
+
+.felt {
+  min-height: calc(100vh - 120px);
+  border-radius: 46px;
+  background: #0f5a36;
+  border: 14px solid #4a2416;
+  box-shadow:
+    inset 0 0 70px rgba(0, 0, 0, 0.45),
+    0 24px 80px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 30px;
+}
+
+.pot {
+  background: #101512;
+  border: 1px solid #f2d27c;
+  color: #f2d27c;
+  padding: 12px 18px;
+  border-radius: 999px;
+}
+
+.community,
+.cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  width: 78px;
+  height: 108px;
+  border-radius: 14px;
+  background: #fff7e6;
+  color: #111;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 9px;
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.card b {
+  font-size: 36px;
+  align-self: flex-end;
+}
+
+.card.red {
+  color: #b3261e;
+}
+
+.card.back {
+  background: #16245c;
+  color: #f2d27c;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  border: 2px solid #f2d27c;
+}
+
+.card.empty {
+  background: #1d2f26;
+  color: #7fa58e;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #7fa58e;
+}
+
+.showdown-hands {
+  width: min(680px, 100%);
+  text-align: center;
+  background: rgba(16, 21, 18, 0.76);
+  border: 1px solid rgba(242, 210, 124, 0.35);
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.showdown-hands h3 {
+  margin: 0 0 12px;
+  color: #f2d27c;
+}
+
+.showdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.showdown-hand {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #161d19;
+  border: 1px solid #2e392f;
+}
+
+.showdown-hand span {
+  font-weight: 900;
+}
+
+.showdown-hand em {
+  color: #f2d27c;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.small-cards .card {
+  width: 56px;
+  height: 78px;
+  border-radius: 10px;
+  font-size: 15px;
+  padding: 7px;
+}
+
+.small-cards .card b {
+  font-size: 24px;
+}
+
+.your-hand {
+  text-align: center;
+}
+
+.your-hand h3 {
+  margin: 0 0 12px;
+  color: #f2d27c;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.controls input {
+  width: 120px;
+}
+
+.winner {
+  font-size: 24px;
+  font-weight: 900;
+  background: #f2d27c;
+  color: #17100a;
+  padding: 12px 20px;
+  border-radius: 999px;
+}
+
+.players-panel h2,
+.log-panel h2,
+.chat-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+  color: #f2d27c;
+  flex-shrink: 0;
+}
+
+.player {
+  padding: 14px;
+  border-radius: 16px;
+  background: #161d19;
+  margin-bottom: 10px;
+  border: 1px solid #2e392f;
+}
+
+.player.active {
+  border-color: #f2d27c;
+  box-shadow: 0 0 0 2px rgba(242, 210, 124, 0.18);
+}
+
+.player.folded {
+  opacity: 0.45;
+}
+
+.player em {
+  color: #f2d27c;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.player small {
+  display: block;
+  color: #9f9274;
+  margin-top: 5px;
+}
+
+.side-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-content: start;
+  max-height: calc(100vh - 120px);
+}
+
+.chat-panel,
+.log-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.chat-messages {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.chat-messages p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #d8ceb1;
+  background: #161d19;
+  border: 1px solid #2e392f;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-form input {
+  padding: 8px 10px;
+}
+
+.chat-form button {
+  padding: 8px 12px;
+}
+
+.log-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  padding-right: 15px;
+}
+
+.log-messages {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.log-messages p {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #d8ceb1;
+  border-bottom: 1px solid #2e392f;
+  padding-bottom: 10px;
+  margin: 0 0 10px;
+}
+
+@media (max-width: 950px) {
+  .auth-page,
+  .lobby-grid,
+  .tables-grid,
+  .table-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-card h1 {
+    font-size: 42px;
+  }
+
+  .auth-page {
+    padding: 22px;
+  }
+
+  .table-layout {
+    padding: 12px;
+  }
+
+  .felt {
+    border-radius: 28px;
+    border-width: 8px;
+  }
+
+  .side-stack {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    max-height: none;
+  }
+
+  .chat-panel,
+  .log-panel {
+    max-height: 360px;
+  }
+}
